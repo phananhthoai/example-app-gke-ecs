@@ -51,7 +51,7 @@ metadata:
     alb.ingress.kubernetes.io/ssl-redirect: "443"
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/healthcheck-path: /health
-    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-southeast-1:774305602364:certificate/cc90ffbd-5c7f-4455-88cb-88736cc4a075   
+    alb.ingress.kubernetes.io/certificate-arn: <ACM-CERTIFICATE-ARN>
 spec:
   ingressClassName: alb
   rules:
