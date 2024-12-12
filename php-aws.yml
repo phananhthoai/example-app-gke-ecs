@@ -1,0 +1,67 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: phpmyadmin
+  labels:
+    app: phpmyadmin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: phpmyadmin
+  template:
+    metadata:
+      labels:
+        app: phpmyadmin
+    spec:
+      containers:
+        - name: phpmyadmin
+          image: phpmyadmin/phpmyadmin
+          ports:
+            - name: http        
+              containerPort: 80          
+          env:
+            - name: PMA_ARBITRARY
+              value: "1"             
+                  
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: phpmyadmin-service  
+spec:
+  type: ClusterIP
+  selector:
+    app: phpmyadmin
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: http
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: phpmyadmin-inrgess
+  labels:
+    app: phpmyadmin
+  annotations: 
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/healthcheck-path: /health
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-southeast-1:774305602364:certificate/cc90ffbd-5c7f-4455-88cb-88736cc4a075   
+spec:
+  ingressClassName: alb
+  rules:
+    - host: phpmyadmin.booking-landmark81.com
+      http:
+        paths:    
+        - backend:
+            service:
+              name: phpmyadmin-service
+              port:
+                number: 8080
+          path: /
+          pathType: Prefix 

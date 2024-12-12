@@ -1,0 +1,68 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: phpmyadmin
+  labels:
+    app: phpmyadmin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: phpmyadmin
+  template:
+    metadata:
+      labels:
+        app: phpmyadmin
+    spec:
+      containers:
+        - name: phpmyadmin
+          image: phpmyadmin/phpmyadmin
+          ports:            
+            - containerPort: 8080           
+          env:
+            - name: PMA_ARBITRARY
+              value: "1"             
+                  
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: phpmyadmin-service  
+spec:
+  type: ClusterIP
+  selector:
+    app: phpmyadmin
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: phpmyadmin-inrgess
+  labels:
+    app: phpmyadmin
+  annotations:
+    kubernetes.io/ingress.class: "gce"    
+    networking.gke.io/managed-certificates: "php-cert"    
+    #nginx.ingress.kubernetes.io/auth-signin: https://auth.elofun.net/oauth2/start?rd=https:%2F%2F$host$escaped_request_uri
+    #nginx.ingress.kubernetes.io/auth-url: https://auth.elofun.net/oauth2/auth
+spec:
+  #ingressClassName: gce
+  rules:
+    - host: phpmyadmin.hellking.dev 
+      http:
+        paths:    
+        - backend:
+            service:
+              name: phpmyadmin-service
+              port:
+                number: 80
+          path: /
+          pathType: Prefix
+  tls:
+    - secretName: tls-phpmyadmin
+      hosts:
+        - phpmyadmin.hellking.dev
